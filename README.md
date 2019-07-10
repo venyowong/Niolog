@@ -1,0 +1,2 @@
+# Niolog
+Easy logger
