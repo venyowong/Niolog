@@ -2,18 +2,18 @@ namespace Niolog
 {
     public class LogTag
     {
-        private string name;
-        private string value;
+        public string Name{get;set;}
+        public string Value{get;set;}
 
         public LogTag(string name, string value)
         {
-            this.name = name;
-            this.value = value;
+            this.Name = name;
+            this.Value = value;
         }
 
         public override string ToString()
         {
-            return $"{this.name}:>{this.value}";
+            return $"{this.Name}:>{this.Value}";
         }
     }
 }

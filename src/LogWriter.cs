@@ -20,6 +20,7 @@ namespace Niolog
         /// </summary>
         protected int concurrent;
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private int activeTask;
 
         /// <summary>
         /// 
@@ -40,6 +41,7 @@ namespace Niolog
                     {
                         logs.Clear();
                         SpinWait.SpinUntil(() => this.queue.Count > 0);
+                        Interlocked.Increment(ref this.activeTask);
 
                         while(logs.Count < this.batch && this.queue.Count > 0)
                         {
@@ -50,12 +52,13 @@ namespace Niolog
                         }
                         
                         this.Consume(logs);
+                        Interlocked.Decrement(ref this.activeTask);
                     }
                 }, this.tokenSource.Token));
             }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             this.tokenSource.Cancel();
             this.tokenSource.Dispose();
@@ -63,7 +66,7 @@ namespace Niolog
 
         public bool Finished()
         {
-            return this.queue.Count <= 0;
+            return this.queue.Count <= 0 && this.activeTask <= 0;
         }
 
         public void Write(ITagger tagger)

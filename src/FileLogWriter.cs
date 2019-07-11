@@ -9,13 +9,9 @@ namespace Niolog
     public class FileLogWriter : LogWriter
     {
         private string path;
-        private string date;
-        private string filePath;
-        private FileStream fileStream;
-        private StreamWriter writer;
 
-        public FileLogWriter(string path, int batch, int concurrent)
-            : base(batch, concurrent)
+        public FileLogWriter(string path, int batch)
+            : base(batch, 1)
         {
             this.path = path;
             if(!Directory.Exists(this.path))
@@ -26,19 +22,13 @@ namespace Niolog
 
         protected override void Consume(List<ITagger> taggers)
         {
-            var now = DateTime.Now.ToString("yyyy-MM-dd");
-            if(this.date != now)
+            var date = DateTime.Now.ToString("yyyy-MM-dd");
+            var filePath = Path.Combine(this.path, $"{date}.log");
+            using(var writer = new StreamWriter(new FileStream(filePath, 
+                FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
             {
-                this.date = now;
-                this.filePath = Path.Combine(this.path, $"{this.date}.log");
-                this.fileStream?.Dispose();
-                this.fileStream = new FileStream(this.filePath, FileMode.Append, 
-                    FileAccess.ReadWrite, FileShare.ReadWrite);
-                this.writer?.Dispose();
-                this.writer = new StreamWriter(this.fileStream);
+                taggers.ForEach(tagger => writer.WriteLine(tagger.ToString()));
             }
-
-            taggers.ForEach(tagger => this.writer.WriteLine(tagger.ToString()));
         }
     }
 }
