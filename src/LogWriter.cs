@@ -61,6 +61,11 @@ namespace Niolog
             this.tokenSource.Dispose();
         }
 
+        public bool Finished()
+        {
+            return this.queue.Count <= 0;
+        }
+
         public void Write(ITagger tagger)
         {
             this.queue.Enqueue(tagger);
