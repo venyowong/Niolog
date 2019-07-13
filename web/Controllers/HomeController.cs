@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LiteDB;
 using Microsoft.AspNetCore.Mvc;
@@ -19,56 +20,49 @@ namespace Niolog.Web.Controllers
         }
         
         [HttpPost]
-        [Route("store")]
-        public bool Store([FromBody]List<Tagger> taggers)
+        [Route("{project}/store")]
+        public bool Store([FromBody]List<Tagger> taggers, string project)
         {
             if(taggers?.Count <= 0)
             {
                 return false;
             }
 
-            try
+            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
             {
-                using(var db = new LiteDatabase(this.appSettings.LiteDb))
+                var logs = db.GetCollection<BsonDocument>("logs");
+                foreach(var tagger in taggers)
                 {
-                    var logs = db.GetCollection<BsonDocument>("logs");
-                    foreach(var tagger in taggers)
+                    var log = new BsonDocument();
+                    foreach(var tag in tagger.Tags)
                     {
-                        var log = new BsonDocument();
-                        foreach(var tag in tagger.Tags)
+                        if(tag.Name == "Time" && DateTime.TryParse(tag.Value, out DateTime time))
                         {
-                            if(tag.Name == "Time" && DateTime.TryParse(tag.Value, out DateTime time))
-                            {
-                                log.Set(tag.Name, time);
-                            }
-                            else
-                            {
-                                log.Set(tag.Name, tag.Value);
-                            }
+                            log.Set(tag.Name, time);
                         }
-                        logs.Insert(log);
+                        else
+                        {
+                            log.Set(tag.Name, tag.Value);
+                        }
                     }
+                    logs.Insert(log);
                 }
 
                 return true;
             }
-            catch
-            {
-                return false;
-            }
         }
 
-        [Route("search")]
-        public object Search(string query)
+        [Route("{project}/search")]
+        public object Search(string query, string project)
         {
             IEnumerable<BsonDocument> records = null;
-            using(var db = new LiteDatabase(this.appSettings.LiteDb))
+            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
             {
                 var logs = db.GetCollection<BsonDocument>("logs");
 
                 if(string.IsNullOrWhiteSpace(query))
                 {
-                    records = logs.Find(Query.Between("Time", DateTime.Now.AddHours(-1), DateTime.Now));
+                    records = logs.Find(Query.Between("Time", DateTime.Now.AddMinutes(-1 * appSettings.DefaultObservationRange), DateTime.Now));
                 }
                 else
                 {
@@ -102,7 +96,7 @@ namespace Niolog.Web.Controllers
                     }
                 });
             })
-            .OrderBy(dic => dic["Time"]).ToList();
+            .OrderByDescending(dic => dic["Time"]).ToList();
             return result;
         }
     }

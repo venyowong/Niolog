@@ -10,8 +10,11 @@
 
     <body class="padding-zero">
         <div id="app" class="container">
-            <div class="item" style="margin-top: 20px">
-                <div class="input-group">
+            <div class="item row" style="margin-top: 20px">
+                <div class="col-md-2">
+                    <input type="text" class="form-control" v-model="project" placeholder="project"/>
+                </div>
+                <div class="input-group col-md-10">
                     <input type="text" v-model="query" class="form-control keyword" placeholder="Enter query">
                     <span class="input-group-btn">
                         <input class="btn btn-default search-button" type="button" value="Search"/>
@@ -43,13 +46,14 @@
                 el: '#app',
                 data:{
                     query: "",
+                    project: "",
                     keys: [],
                     results: []
                 }
             });
 
             function search(){
-                $.get(`./search?query=${app.query}`, function(data){
+                $.get(`./${app.project}/search?query=${app.query}`, function(data){
                     if(data){
                         app.keys = data.keys;
                         app.results = data.logs;
