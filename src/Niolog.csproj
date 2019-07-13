@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Niolog</PackageId>
-    <Version>0.0.2</Version>
+    <Version>0.0.5</Version>
     <Title>Niolog</Title>
     <Description>Easy logger</Description>
     <PackageProjectUrl>https://github.com/venyowong/Niolog</PackageProjectUrl>

@@ -35,7 +35,7 @@ namespace Niolog
         public void Write()
         {
             var tagger = new Tagger();
-            tagger.Tag("Time", this.LogTime.ToString());
+            tagger.Tag("Time", this.LogTime.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
             tagger.Tags.AddRange(this.logger.Tags);
             tagger.Tags.AddRange(this.Tags);
             this.logger.Write(tagger);

@@ -8,6 +8,8 @@ namespace Niolog
         [ThreadStatic]
         public static INiologger _logger = null;
 
+        public static ILogWriter[] DefaultWriters{get;set;}
+
         public static INiologger Logger
         {
             get
@@ -20,11 +22,18 @@ namespace Niolog
             }
         }
 
-        public static INiologger CreateLogger(ILogWriter writer = null)
+        public static INiologger CreateLogger(params ILogWriter[] writers)
         {
             if(_logger == null)
             {
-                _logger = new Niologger(writer);
+                if(writers?.Length > 0)
+                {
+                    _logger = new Niologger(writers);
+                }
+                else
+                {
+                    _logger = new Niologger(DefaultWriters);
+                }
             }
 
             return _logger;

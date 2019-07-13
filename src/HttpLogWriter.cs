@@ -19,9 +19,13 @@ namespace Niolog
 
         protected override void Consume(List<ITagger> taggers)
         {
-            Task.WaitAll(this.httpClient.PostAsync(this.url, new StringContent(
-                JsonConvert.SerializeObject(taggers), Encoding.UTF8, 
-                "application/json")));
+            try
+            {
+                Task.WaitAll(this.httpClient.PostAsync(this.url, new StringContent(
+                    JsonConvert.SerializeObject(taggers), Encoding.UTF8, 
+                    "application/json")));
+            }
+            catch{}
         }
     }
 }

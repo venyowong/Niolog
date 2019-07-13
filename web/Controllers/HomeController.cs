@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LiteDB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Niolog.Interfaces;
-using Niolog.Web.Models;
+using Niolog.Models;
 
 namespace Niolog.Web.Controllers
 {
@@ -20,9 +20,9 @@ namespace Niolog.Web.Controllers
         
         [HttpPost]
         [Route("store")]
-        public bool Store(StoreRequestModel model)
+        public bool Store([FromBody]List<Tagger> taggers)
         {
-            if(model?.Taggers?.Count <= 0)
+            if(taggers?.Count <= 0)
             {
                 return false;
             }
@@ -32,7 +32,7 @@ namespace Niolog.Web.Controllers
                 using(var db = new LiteDatabase(this.appSettings.LiteDb))
                 {
                     var logs = db.GetCollection<BsonDocument>("logs");
-                    foreach(var tagger in model.Taggers)
+                    foreach(var tagger in taggers)
                     {
                         var log = new BsonDocument();
                         foreach(var tag in tagger.Tags)
@@ -61,20 +61,49 @@ namespace Niolog.Web.Controllers
         [Route("search")]
         public object Search(string query)
         {
+            IEnumerable<BsonDocument> records = null;
             using(var db = new LiteDatabase(this.appSettings.LiteDb))
             {
                 var logs = db.GetCollection<BsonDocument>("logs");
 
                 if(string.IsNullOrWhiteSpace(query))
                 {
-                    return logs.Find(Query.Between("Time", DateTime.Now.AddHours(-1), DateTime.Now));
+                    records = logs.Find(Query.Between("Time", DateTime.Now.AddHours(-1), DateTime.Now));
                 }
                 else
                 {
                     var strs = query.Split(':');
-                    return logs.Find(Query.Contains(strs[0], strs[1]));
+                    records = logs.Find(Query.Contains(strs[0], strs[1]));
                 }
             }
+
+            var result = new SearchResultModel
+            {
+                Keys = new List<string>()
+            };
+            result.Logs = records.Select(doc => 
+            {
+                foreach(var key in doc.Keys)
+                {
+                    if(!result.Keys.Contains(key))
+                    {
+                        result.Keys.Add(key);
+                    }
+                }
+                return doc.ToDictionary(pair => pair.Key, pair => 
+                {
+                    if(pair.Key == "Time")
+                    {
+                        return pair.Value.AsDateTime.ToString("yyyy-MM-dd HH:mm:ss.ffff");
+                    }
+                    else
+                    {
+                        return pair.Value.AsString;
+                    }
+                });
+            })
+            .OrderBy(dic => dic["Time"]).ToList();
+            return result;
         }
     }
 }

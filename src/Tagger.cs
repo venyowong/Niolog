@@ -6,11 +6,11 @@ namespace Niolog
 {
     public class Tagger : ITagger
     {
-        public List<LogTag> Tags {get;} = new List<LogTag>();
+        public List<LogTag> Tags {get;set;} = new List<LogTag>();
 
         public virtual ITagger Tag(string name, string value)
         {
-            Tags.Add(new LogTag(name, value));
+            Tags.Add(new LogTag{Name = name, Value = value});
             return this;
         }
 

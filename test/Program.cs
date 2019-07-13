@@ -20,7 +20,7 @@ namespace Test
             //     Console.WriteLine(logger == logger2);
             // });
 
-            using(var logWriter = new HttpLogWriter("http://localhost:9615/home/store", 10, 2))
+            using(var logWriter = new HttpLogWriter("http://localhost:9615/store", 10, 2))
             {
                 var logger = NiologManager.CreateLogger(logWriter);
                 for(var i = 0; i < 20; i++)

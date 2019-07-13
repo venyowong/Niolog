@@ -7,12 +7,12 @@ namespace Niolog
     public class Niologger : Tagger, INiologger
     {
         private List<Log> logs = new List<Log>();
-        private ILogWriter writer;
+        private ILogWriter[] writers;
 
-        public Niologger(ILogWriter writer)
+        public Niologger(params ILogWriter[] writers)
         {
             base.Tag("Id", Guid.NewGuid().ToString("N"));
-            this.writer = writer;
+            this.writers = writers;
         }
 
         public ILog Error()
@@ -37,7 +37,15 @@ namespace Niolog
 
         public void Write(ITagger tagger)
         {
-            this.writer?.Write(tagger);
+            if(this.writers?.Length <= 0)
+            {
+                return;
+            }
+
+            foreach(var writer in writers)
+            {
+                writer.Write(tagger);
+            }
         }
     }
 }
