@@ -8,8 +8,8 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerF
 
     NiologManager.DefaultWriters = new ILogWriter[]
     {
-        new FileLogWriter(appSettings.Value.Niolog.Path, 10),
-        new HttpLogWriter(appSettings.Value.Niolog.Url, 10, 1)
+        new FileLogWriter(path, 10),
+        new HttpLogWriter(url, 10, 1)
     };
     
     loggerFactory.AddProvider(new LoggerProvider());
