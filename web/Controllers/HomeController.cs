@@ -47,6 +47,9 @@ namespace Niolog.Web.Controllers
                     }
                     logs.Insert(log);
                 }
+                logs.EnsureIndex("Time");
+                logs.EnsureIndex("Id");
+                logs.EnsureIndex("Level");
 
                 return true;
             }
