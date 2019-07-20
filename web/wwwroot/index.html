@@ -12,7 +12,9 @@
         <div id="app" class="container">
             <div class="item row" style="margin-top: 20px">
                 <div class="col-md-2">
-                    <input type="text" class="form-control" v-model="project" placeholder="project"/>
+                    <select class="form-control" v-model="project">
+                        <option v-for="p in projects">{{p}}</option>
+                    </select>
                 </div>
                 <div class="input-group col-md-10">
                     <input type="text" v-model="query" class="form-control keyword" placeholder="Enter query">
@@ -47,6 +49,7 @@
                 data:{
                     query: "",
                     project: "",
+                    projects: [],
                     keys: [],
                     results: []
                 }
@@ -71,7 +74,11 @@
                 }
             });
 
-            search();
+            $.get('./projects', function(data){
+                if(data){
+                    app.projects = data;
+                }
+            });
         </script>
     </body>
 </html>
