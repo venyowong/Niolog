@@ -37,7 +37,7 @@ namespace Niolog
 
         public void Write(ITagger tagger)
         {
-            if(this.writers?.Length <= 0)
+            if(this.writers == null || this.writers.Length <= 0)
             {
                 return;
             }
