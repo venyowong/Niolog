@@ -12,9 +12,17 @@
         <div id="app" class="container">
             <div class="item row" style="margin-top: 20px">
                 <div class="col-md-2">
-                    <input type="text" class="form-control" v-model="project" placeholder="project"/>
+                    <select class="form-control" v-model="project">
+                        <option v-for="p in projects">{{p}}</option>
+                    </select>
                 </div>
-                <div class="input-group col-md-10">
+                <div class="col-md-1">
+                    <input class="form-control" v-model="skip" placeholder="Skip"/>
+                </div>
+                <div class="col-md-1">
+                    <input class="form-control" v-model="limit" placeholder="Limit"/>
+                </div>
+                <div class="input-group col-md-8">
                     <input type="text" v-model="query" class="form-control keyword" placeholder="Enter query">
                     <span class="input-group-btn">
                         <input class="btn btn-default search-button" type="button" value="Search"/>
@@ -47,13 +55,16 @@
                 data:{
                     query: "",
                     project: "",
+                    projects: [],
                     keys: [],
-                    results: []
+                    results: [],
+                    skip: 0,
+                    limit: 100
                 }
             });
 
             function search(){
-                $.get(`./${app.project}/search?query=${app.query}`, function(data){
+                $.get(`./${app.project}/search?query=${app.query}&skip=${app.skip}&limit=${app.limit}`, function(data){
                     if(data){
                         app.keys = data.keys;
                         app.results = data.logs;
@@ -71,7 +82,11 @@
                 }
             });
 
-            search();
+            $.get('./projects', function(data){
+                if(data){
+                    app.projects = data;
+                }
+            });
         </script>
     </body>
 </html>

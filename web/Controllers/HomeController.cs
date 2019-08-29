@@ -56,7 +56,7 @@ namespace Niolog.Web.Controllers
         }
 
         [Route("{project}/search")]
-        public object Search(string query, string project)
+        public object Search(string query, string project, int skip = 0, int limit = 100)
         {
             IEnumerable<BsonDocument> records = null;
             using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
@@ -65,12 +65,14 @@ namespace Niolog.Web.Controllers
 
                 if(string.IsNullOrWhiteSpace(query))
                 {
-                    records = logs.Find(Query.Between("Time", DateTime.Now.AddMinutes(-1 * appSettings.DefaultObservationRange), DateTime.Now));
+                    records = logs.Find(Query.Between("Time", 
+                        DateTime.Now.AddMinutes(-1 * appSettings.DefaultObservationRange), DateTime.Now),
+                        skip, limit);
                 }
                 else
                 {
                     var strs = query.Split(':');
-                    records = logs.Find(Query.Contains(strs[0], strs[1]));
+                    records = logs.Find(Query.Contains(strs[0], strs[1]), skip, limit);
                 }
             }
 
@@ -101,6 +103,21 @@ namespace Niolog.Web.Controllers
             })
             .OrderByDescending(dic => dic["Time"]).ToList();
             return result;
+        }
+    
+        [HttpGet]
+        [Route("projects")]
+        public object GetProjects()
+        {
+            if(!Directory.Exists(this.appSettings.LiteDb))
+            {
+                return null;
+            }
+
+            var start = this.appSettings.LiteDb.Length + 1;
+            return Directory.GetFiles(this.appSettings.LiteDb)
+                .Select(file => file.Substring(start, file.Length - start - 3))
+                .ToArray();
         }
     }
 }
