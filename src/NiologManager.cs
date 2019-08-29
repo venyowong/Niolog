@@ -10,6 +10,8 @@ namespace Niolog
 
         public static ILogWriter[] DefaultWriters{get;set;}
 
+        private static readonly ConsoleLogWriter _consoleLogWriter = new ConsoleLogWriter();
+
         public static INiologger Logger
         {
             get
@@ -29,6 +31,10 @@ namespace Niolog
                 if(writers?.Length > 0)
                 {
                     _logger = new Niologger(writers);
+                }
+                else if(DefaultWriters == null || DefaultWriters.Length <= 0)
+                {
+                    _logger = new Niologger(_consoleLogWriter);
                 }
                 else
                 {
