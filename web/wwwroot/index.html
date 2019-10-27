@@ -64,6 +64,9 @@
             });
 
             function search(){
+                app.keys = []
+                app.results = []
+                
                 $.get(`./${app.project}/search?query=${app.query}&skip=${app.skip}&limit=${app.limit}`, function(data){
                     if(data){
                         app.keys = data.keys;

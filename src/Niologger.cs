@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Niolog.Interfaces;
 
 namespace Niolog
@@ -37,7 +38,7 @@ namespace Niolog
 
         public void Write(ITagger tagger)
         {
-            if(this.writers == null || this.writers.Length <= 0)
+            if(!this.writers?.Any() ?? true)
             {
                 return;
             }

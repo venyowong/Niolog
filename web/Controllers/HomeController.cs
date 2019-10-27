@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using LiteDB;
@@ -19,9 +20,9 @@ namespace Niolog.Web.Controllers
             this.appSettings = appSettings.Value;
         }
         
-        [HttpPost]
+        [HttpPost, ModelValidation]
         [Route("{project}/store")]
-        public bool Store([FromBody]List<Tagger> taggers, string project)
+        public bool Store([Required][FromBody]List<Tagger> taggers, [Required]string project)
         {
             if(taggers?.Count <= 0)
             {
@@ -55,8 +56,8 @@ namespace Niolog.Web.Controllers
             }
         }
 
-        [Route("{project}/search")]
-        public object Search(string query, string project, int skip = 0, int limit = 100)
+        [Route("{project}/search"), ModelValidation]
+        public object Search([Required]string query, [Required]string project, int skip = 0, int limit = 100)
         {
             IEnumerable<BsonDocument> records = null;
             using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
