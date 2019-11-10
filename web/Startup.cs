@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 
 namespace Niolog.Web
 {
@@ -16,7 +17,7 @@ namespace Niolog.Web
     {
         public IConfiguration Configuration { get; }
 
-        public Startup(IHostingEnvironment hostingEnvironment, IConfiguration configuration)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
@@ -25,7 +26,7 @@ namespace Niolog.Web
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(option => option.EnableEndpointRouting = false);
 
             services.AddOptions();
             services.Configure<AppSettings>(this.Configuration);
@@ -39,7 +40,7 @@ namespace Niolog.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IOptions<AppSettings> appSettings)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IOptions<AppSettings> appSettings)
         {
             if (env.IsDevelopment())
             {

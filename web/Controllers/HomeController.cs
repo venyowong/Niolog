@@ -57,7 +57,7 @@ namespace Niolog.Web.Controllers
         }
 
         [Route("{project}/search"), ModelValidation]
-        public object Search([Required]string query, [Required]string project, int skip = 0, int limit = 100)
+        public object Search(string query, [Required]string project, int skip = 0, int limit = 100)
         {
             IEnumerable<BsonDocument> records = null;
             using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
@@ -119,6 +119,48 @@ namespace Niolog.Web.Controllers
             return Directory.GetFiles(this.appSettings.LiteDb)
                 .Select(file => file.Substring(start, file.Length - start - 3))
                 .ToArray();
+        }
+
+        [HttpDelete, ModelValidation]
+        [Route("{project}/log")]
+        public bool DeleteLog([Required]string project, [Required]string beyond)
+        {
+            var unit = beyond[beyond.Length - 1];
+            double.TryParse(beyond.Substring(0, beyond.Length - 1), out double num);
+            DateTime timePoint;
+            switch(unit)
+            {
+                case 's':
+                    timePoint = DateTime.Now.AddSeconds(num * -1);
+                    break;
+                case 'm':
+                    timePoint = DateTime.Now.AddMinutes(num * -1);
+                    break;
+                case 'h':
+                    timePoint = DateTime.Now.AddDays(num * -1);
+                    break;
+                case 'd':
+                    timePoint = DateTime.Now.AddDays(num * -1);
+                    break;
+                case 'w':
+                    timePoint = DateTime.Now.AddDays(num * -7);
+                    break;
+                case 'M':
+                    timePoint = DateTime.Now.AddMonths((int)num * -1);
+                    break;
+                case 'y':
+                    timePoint = DateTime.Now.AddYears((int)num * -1);
+                    break;
+                default:
+                    return false;
+            }
+
+            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
+            {
+                var logs = db.GetCollection<BsonDocument>("logs");
+                logs.Delete(log => log["Time"].AsDateTime <= timePoint);
+                return true;
+            }
         }
     }
 }
