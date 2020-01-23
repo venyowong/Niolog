@@ -22,13 +22,14 @@ namespace Test
 
             using(var logWriter = new HttpLogWriter("http://localhost:9615/lite/store", 10, 2))
             {
-                var logger = NiologManager.CreateLogger(logWriter);
                 for(var i = 0; i < 20; i++)
                 {
+                    var logger = NiologManager.CreateLogger();
                     logger.Trace()
                         .Message($"test{i}")
                         .SetTag("Index", i.ToString())
                         .Write();
+                    NiologManager.FreeLogger();
                 }
 
                 SpinWait.SpinUntil(logWriter.Finished);

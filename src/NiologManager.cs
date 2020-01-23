@@ -6,7 +6,7 @@ namespace Niolog
     public static class NiologManager
     {
         [ThreadStatic]
-        public static INiologger _logger = null;
+        private static INiologger _logger = null;
 
         public static ILogWriter[] DefaultWriters{get;set;}
 
@@ -43,6 +43,11 @@ namespace Niolog
             }
 
             return _logger;
+        }
+
+        public static void FreeLogger()
+        {
+            _logger = null;
         }
     }
 }
