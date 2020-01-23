@@ -11,8 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.1.4" />
-    <PackageReference Include="Niolog" Version="0.0.5" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\aspnetcore\Niolog.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

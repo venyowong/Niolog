@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Niolog.Models
+namespace Niolog.Web.Models
 {
     public class SearchResultModel
     {

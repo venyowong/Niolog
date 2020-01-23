@@ -5,8 +5,9 @@ using System.IO;
 using System.Linq;
 using LiteDB;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Niolog.Models;
+using Niolog.Web.Models;
 
 namespace Niolog.Web.Controllers
 {
@@ -15,9 +16,12 @@ namespace Niolog.Web.Controllers
     {
         private readonly AppSettings appSettings;
 
-        public HomeController(IOptions<AppSettings> appSettings)
+        private ILogger<HomeController> logger;
+
+        public HomeController(IOptions<AppSettings> appSettings, ILogger<HomeController> logger)
         {
             this.appSettings = appSettings.Value;
+            this.logger = logger;
         }
         
         [HttpPost, ModelValidation]
@@ -110,11 +114,13 @@ namespace Niolog.Web.Controllers
         [Route("projects")]
         public object GetProjects()
         {
+            this.logger.LogInformation("test");
             if(!Directory.Exists(this.appSettings.LiteDb))
             {
                 return null;
             }
 
+            this.logger.LogInformation("test");
             var start = this.appSettings.LiteDb.Length + 1;
             return Directory.GetFiles(this.appSettings.LiteDb)
                 .Select(file => file.Substring(start, file.Length - start - 3))

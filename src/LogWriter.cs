@@ -12,11 +12,11 @@ namespace Niolog
         protected ConcurrentQueue<ITagger> queue = new ConcurrentQueue<ITagger>();
         protected List<Task> consumerTasks = new List<Task>();
         /// <summary>
-        /// 以 {batch} 条日志为单位进行日志消费
+        /// Log consumption with {batch} logs
         /// </summary>
         protected int batch;
         /// <summary>
-        /// 日志消费线程的并发量
+        /// Number of log consuming threads
         /// </summary>
         protected int concurrent;
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -25,8 +25,8 @@ namespace Niolog
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="batch">以 {batch} 条日志为单位进行日志消费</param>
-        /// <param name="concurrent">日志消费线程的并发量</param>
+        /// <param name="batch">Log consumption with {batch} logs</param>
+        /// <param name="concurrent">Number of log consuming threads</param>
         public LogWriter(int batch, int concurrent)
         {
             this.batch = batch;

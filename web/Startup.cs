@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
+using Niolog.AspNetCore;
 
 namespace Niolog.Web
 {
@@ -51,6 +52,8 @@ namespace Niolog.Web
             {
                 Directory.CreateDirectory(appSettings.Value.LiteDb);
             }
+
+            app.UseNiolog();
 
             var defaultFile = new DefaultFilesOptions();  
             defaultFile.DefaultFileNames.Clear();  
