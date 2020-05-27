@@ -102,11 +102,18 @@ namespace Niolog.Web.Controllers
                     }
                     else
                     {
-                        return pair.Value.AsString;
+                        if (pair.Value.IsDocument)
+                        {
+                            return JsonSerializer.Serialize(pair.Value);
+                        }
+                        else
+                        {
+                            return pair.Value.AsString;
+                        }
                     }
                 });
             })
-            .OrderByDescending(dic => dic["Time"]).ToList();
+            .OrderByDescending(dic => dic.ContainsKey("Time") ? dic["Time"] : default).ToList();
             return result;
         }
     
@@ -114,13 +121,11 @@ namespace Niolog.Web.Controllers
         [Route("projects")]
         public object GetProjects()
         {
-            this.logger.LogInformation("test");
             if(!Directory.Exists(this.appSettings.LiteDb))
             {
                 return null;
             }
 
-            this.logger.LogInformation("test");
             var start = this.appSettings.LiteDb.Length + 1;
             return Directory.GetFiles(this.appSettings.LiteDb)
                 .Select(file => file.Substring(start, file.Length - start - 3))
