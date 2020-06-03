@@ -59,63 +59,6 @@ namespace Niolog.Web.Controllers
                 return true;
             }
         }
-
-        [Route("{project}/search"), ModelValidation]
-        public object Search(string query, [Required]string project, int skip = 0, int limit = 100)
-        {
-            IEnumerable<BsonDocument> records = null;
-            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
-            {
-                var logs = db.GetCollection<BsonDocument>("logs");
-
-                if(string.IsNullOrWhiteSpace(query))
-                {
-                    records = logs.Find(Query.Between("Time", 
-                        DateTime.Now.AddMinutes(-1 * appSettings.DefaultObservationRange), DateTime.Now),
-                        skip, limit);
-                }
-                else
-                {
-                    var strs = query.Split(':');
-                    records = logs.Find(Query.Contains(strs[0], strs[1]), skip, limit);
-                }
-            }
-
-            var result = new SearchResultModel
-            {
-                Keys = new List<string>()
-            };
-            result.Logs = records.Select(doc => 
-            {
-                foreach(var key in doc.Keys)
-                {
-                    if(!result.Keys.Contains(key))
-                    {
-                        result.Keys.Add(key);
-                    }
-                }
-                return doc.ToDictionary(pair => pair.Key, pair => 
-                {
-                    if(pair.Key == "Time")
-                    {
-                        return pair.Value.AsDateTime.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-                    }
-                    else
-                    {
-                        if (pair.Value.IsDocument)
-                        {
-                            return JsonSerializer.Serialize(pair.Value);
-                        }
-                        else
-                        {
-                            return pair.Value.AsString;
-                        }
-                    }
-                });
-            })
-            .OrderByDescending(dic => dic.ContainsKey("Time") ? dic["Time"] : default).ToList();
-            return result;
-        }
     
         [HttpGet]
         [Route("projects")]
@@ -130,6 +73,16 @@ namespace Niolog.Web.Controllers
             return Directory.GetFiles(this.appSettings.LiteDb)
                 .Select(file => file.Substring(start, file.Length - start - 3))
                 .ToArray();
+        }
+
+        [HttpGet]
+        [Route("{project}/collections"), ModelValidation]
+        public object GetCollections(string project)
+        {
+            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
+            {
+                return db.GetCollectionNames();
+            }
         }
 
         [HttpDelete, ModelValidation]
@@ -172,6 +125,69 @@ namespace Niolog.Web.Controllers
                 logs.Delete(log => log["Time"].AsDateTime <= timePoint);
                 return true;
             }
+        }
+
+        [Route("{project}/{collection}/query")]
+        public object QueryByTime(string project, string collection, string query, DateTime startTime = default, 
+            DateTime endTime = default, int skip = 0, int limit = 100)
+        {
+            using(var db = new LiteDatabase(Path.Combine(this.appSettings.LiteDb, $"{project}.db")))
+            {
+                var col = db.GetCollection<BsonDocument>(collection);
+                if (startTime == default)
+                {
+                    startTime = DateTime.Now.AddMinutes(-1 * appSettings.DefaultObservationRange);
+                }
+                if (endTime == default)
+                {
+                    endTime = DateTime.Now;
+                }
+                var q = Query.Between("Time", startTime, endTime);
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    var strs = query.Split(':');
+                    q = Query.And(q, Query.Contains(strs[0], strs[1]));
+                }
+                return this.ConvertToResult(col.Find(q, skip, limit));
+            }
+        }
+
+        private SearchResultModel ConvertToResult(IEnumerable<BsonDocument> records)
+        {
+            var result = new SearchResultModel
+            {
+                Keys = new List<string>()
+            };
+            result.Logs = records.Select(doc => 
+            {
+                foreach(var key in doc.Keys)
+                {
+                    if(!result.Keys.Contains(key))
+                    {
+                        result.Keys.Add(key);
+                    }
+                }
+                return doc.ToDictionary(pair => pair.Key, pair => 
+                {
+                    if(pair.Key == "Time")
+                    {
+                        return pair.Value.AsDateTime.ToString("yyyy-MM-dd HH:mm:ss.ffff");
+                    }
+                    else
+                    {
+                        if (pair.Value.IsDocument)
+                        {
+                            return JsonSerializer.Serialize(pair.Value);
+                        }
+                        else
+                        {
+                            return pair.Value.AsString;
+                        }
+                    }
+                });
+            })
+            .OrderByDescending(dic => dic.ContainsKey("Time") ? dic["Time"] : default).ToList();
+            return result;
         }
     }
 }
