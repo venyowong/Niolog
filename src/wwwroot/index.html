@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Niolog</title>
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="./libs/element/index.css">
+    </head>
+
+    <body class="padding-zero">
+        <div id="app" class="container">
+            <div class="item row" style="margin-top: 20px">
+                <div class="col-md-2">
+                    <select class="form-control" v-model="project" @change="changeProject()">
+                        <option v-for="p in projects">{{p}}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-control" v-model="collection">
+                        <option v-for="c in collections">{{c}}</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <input class="form-control" v-model="skip" placeholder="Skip"/>
+                </div>
+                <div class="col-md-1">
+                    <input class="form-control" v-model="limit" placeholder="Limit"/>
+                </div>
+                <div class="input-group col-md-6">
+                    <input type="text" v-model="query" class="form-control keyword" placeholder="Enter query">
+                    <span class="input-group-btn">
+                        <input class="btn btn-default search-button" type="button" value="Search"/>
+                    </span>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 20px">
+                <div class="col-sm-2">
+                    <el-switch v-model="timeSwitch" active-text="按照日期查询">
+                    </el-switch>
+                </div>
+                <div class="col-sm-5">
+                    <el-date-picker v-model="startDate" type="date" placeholder="起始日期">
+                    </el-date-picker>
+                    <el-time-picker v-model="startTime" placeholder="起始时间点">
+                    </el-time-picker>
+                </div>
+                <div class="col-sm-5">
+                    <el-date-picker v-model="endDate" type="date" placeholder="截止日期">
+                    </el-date-picker>
+                    <el-time-picker v-model="endTime" placeholder="截止时间点">
+                    </el-time-picker>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 20px">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th v-for="key in keys">{{key}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="result in results">
+                            <td v-for="key in keys">{{result[key]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script src="./libs/element/index.js"></script>
+        <script src="./js/site.js"></script>
+
+        <script>
+            var app = new Vue({
+                el: '#app',
+                data:{
+                    query: "",
+                    project: "",
+                    projects: [],
+                    keys: [],
+                    results: [],
+                    skip: 0,
+                    limit: 100,
+                    collection: "",
+                    collections: [],
+                    startDate: null,
+                    endDate: null,
+                    startTime: null,
+                    endTime: null,
+                    timeSwitch: false
+                },
+                methods: {
+                    changeProject: function() {
+                        if (!app.project) {
+                            return;
+                        }
+
+                        fetch(`./${app.project}/collections`, {method: "GET"})
+                        .then(function(response) {
+                            if (response.status == 200) {
+                                return response.json();
+                            }
+                        })
+                        .then(function(response) {
+                            app.collections = response;
+                        })
+                    }
+                }
+            });
+
+            function search(){
+                app.keys = []
+                app.results = []
+
+                if (!app.project || !app.collection) {
+                    return;
+                }
+
+                var startTime = "";
+                if (app.timeSwitch && app.startDate) {
+                    startTime = `${formatDate(app.startDate)} ${formatTime(app.startTime)}`;
+                }
+                var endTime = "";
+                if (app.timeSwitch && app.endDate) {
+                    endTime = `${formatDate(app.endDate)} ${formatTime(app.endTime)}`;
+                }
+                
+                $.get(`./${app.project}/${app.collection}/query?query=${app.query}&skip=${app.skip}&limit=${app.limit}&startTime=${startTime}&endTime=${endTime}`, 
+                function(data){
+                    if(data){
+                        app.keys = data.keys;
+                        app.results = data.logs;
+                    }
+                });
+            }
+
+            $(".search-button").click(function(){
+                search();
+            });
+
+            $(".keyword").keydown(function(event) {
+                if(event.keyCode == 13) {
+                    search();
+                }
+            });
+
+            $.get('./projects', function(data){
+                if(data){
+                    app.projects = data;
+                }
+            });
+        </script>
+    </body>
+</html>
